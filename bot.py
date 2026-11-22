@@ -78,7 +78,8 @@ SOURCES = [
         "name": "LVMH (Dior, Louis Vuitton, Celine, Moët Hennessy, Guerlain...)",
         "type": "page",
         "urls": [
-            "https://www.lvmh.com/en/join-us/our-job-offers?place=London",
+            "https://www.lvmh.com/en/our-job-offers?place=London",
+            "https://www.lvmh.com/en/our-job-offers",
             "https://www.lvmh.com/en/join-us/our-job-offers",
         ],
         "link_re": r"/(?:en/)?join-us/our-job-offers/([A-Z]{2,8}\d{3,7})\b",
@@ -93,12 +94,6 @@ SOURCES = [
             "https://careers.richemont.com/en/jobs/",
         ],
         "link_re": r"/en/jobs/(jr\d+)/[\w\-%]+/?",
-    },
-    {
-        "name": "Richemont Maisons (jobs.richemont.com)",
-        "type": "page",
-        "urls": ["https://jobs.richemont.com/search/?q=&locationsearch=London"],
-        "link_re": r"/[\w\-]+/job/[^\"'\s<>?#]+?/(\d{7,})/?",
     },
     {
         "name": "Estée Lauder Companies (MAC, Jo Malone, La Mer, Clinique...)",
@@ -128,7 +123,6 @@ SOURCES = [
     {"name": "Hanover (PR agency)", "type": "greenhouse", "token": "hanover"},
     {"name": "Burson (PR agency)", "type": "greenhouse", "token": "bursonglobal"},
     {"name": "DEPT (marketing agency)", "type": "greenhouse", "token": "dept"},
-    {"name": "HWL (PR agency)", "type": "greenhouse", "token": "hwl"},
     {"name": "Fully Vested (PR agency)", "type": "lever", "company": "fullyvested"},
     {
         "name": "Influencer (creator marketing agency)",
@@ -382,6 +376,12 @@ def list_page(src):
 
 def list_workday(src):
     api = f"https://{src['host']}/wday/cxs/{src['tenant']}/{src['site']}/jobs"
+    sess = requests.Session()
+    sess.headers.update(HEADERS)
+    try:
+        sess.get(f"https://{src['host']}/en-US/{src['site']}", timeout=25)
+    except requests.RequestException:
+        pass
     stubs, offset = [], 0
     while offset < 200:
         body = {"appliedFacets": {}, "limit": 20, "offset": offset,
@@ -390,7 +390,7 @@ def list_workday(src):
                 "Origin": f"https://{src['host']}",
                 "Referer": f"https://{src['host']}/en-US/{src['site']}"}
         for attempt in range(4):
-            r = requests.post(api, json=body, headers=hdrs, timeout=25)
+            r = sess.post(api, json=body, headers=hdrs, timeout=25)
             if r.status_code != 429:
                 break
             time.sleep(10 * (attempt + 1))
@@ -615,8 +615,35 @@ def run():
     print(f"[done] new jobs sent: {sent}")
 
 
+def diagnose(src):
+    """Short technical notes about a site where no jobs were found."""
+    notes = []
+    for u in src.get("urls", [])[:2]:
+        try:
+            r = _get(u)
+            t = r.text
+            notes.append(f"{u} -> {r.status_code}, {len(t)//1000} KB, final {r.url}")
+            for word in ["algolia", "__NEXT_DATA__", "graphql", "smartrecruiters", "workday",
+                         "greenhouse", "lever.co", "teamtailor", "successfactors", "avature",
+                         "jobvite", "icims", "taleo", "oraclecloud", "harri", "/api/"]:
+                if word.lower() in t.lower():
+                    notes.append(f"  contains: {word}")
+            m = re.findall(r'(?i)(?:appId|applicationId|ALGOLIA_APP_ID)["\']?\s*[:=]\s*["\']([A-Z0-9]{8,12})', t)
+            if m:
+                notes.append(f"  algolia app: {m[0]}")
+            for api in sorted(set(re.findall(r'https?://[\w.-]+/[\w./-]*(?:api|search|jobs)[\w./-]*', t)))[:5]:
+                notes.append(f"  url: {api[:120]}")
+        except requests.RequestException as e:
+            notes.append(f"{u} -> error {str(e)[:80]}")
+    if src.get("urls"):
+        maps = _sitemap_urls(src["urls"][0])
+        notes.append("  sitemaps: " + ", ".join(m[:80] for m in maps[:3]))
+    return notes
+
+
 def test():
     lines = ["✅ Бот вакансий подключён к Telegram.", "", "Проверка сайтов:"]
+    details = []
     for src in SOURCES:
         try:
             stubs = ADAPTERS[src["type"]](src)
@@ -624,12 +651,18 @@ def test():
             via = {"sitemap": " (через карту сайта)", "board page": " (через страницу вакансий)"}.get(
                 src.get("_via", ""), "")
             lines.append(f"{mark} {src['name']}: вакансий видно {len(stubs)}{via}")
+            if not stubs and src["type"] == "page":
+                details.extend([f"[{src['name'][:30]}]"] + diagnose(src))
         except Exception as e:
             lines.append(f"❌ {src['name']}: {str(e)[:120]}")
     lines += ["", "Если где-то ⚠️ или ❌, перешлите это сообщение Claude."]
     msg = "\n".join(lines)
     print(msg)
     tg_send(html.escape(msg))
+    if details:
+        detail_msg = "🔧 Технические детали для Claude:\n" + "\n".join(details)
+        print(detail_msg)
+        tg_send(html.escape(detail_msg[:3900]))
 
 
 if __name__ == "__main__":
