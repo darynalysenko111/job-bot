@@ -82,7 +82,8 @@ SOURCES = [
             "https://www.lvmh.com/en/join-us/our-job-offers",
         ],
         "link_re": r"/(?:en/)?join-us/our-job-offers/([A-Z]{2,8}\d{3,7})\b",
-        "json_re": r'"(?:ref|reference|jobRef|jobId|objectID)"\s*:\s*"([A-Z]{2,8}\d{3,7})"',
+        # Job references like MHE02525, CDC15230, GUER05495, LVMH03215 anywhere in the page data.
+        "json_re": r'(?<![A-Za-z0-9])([A-Z]{3,6}\d{5})(?![A-Za-z0-9])',
         "job_url": "https://www.lvmh.com/en/join-us/our-job-offers/{id}",
     },
     {
@@ -99,20 +100,6 @@ SOURCES = [
         "type": "page",
         "urls": ["https://elchxmprod.jobs.hr.cloud.sap/search/?q=&locationsearch=London"],
         "link_re": r"/job/[^\"'\s<>?#]+?/(\d{7,})/?",
-    },
-    {
-        "name": "Ralph Lauren",
-        "type": "page",
-        "urls": [
-            "https://careers.ralphlauren.com/CareersCorporate/SearchJobs/?listFilterMode=1&jobRecordsPerPage=100",
-            "https://careers.ralphlauren.com/CareersCorporate/SearchJobs",
-        ],
-        "link_re": r"/CareersCorporate\w*/JobDetail\w*/[^\"'\s<>/?#]+/(\d+)",
-        "sitemaps": [
-            "https://ralphlauren.avature.net/CareersCorporate/sitemap_index.xml",
-            "https://careers.ralphlauren.com/CareersCorporate/sitemap_index.xml",
-            "https://ralphlauren.avature.net/CareersCorporate/sitemap.xml",
-        ],
     },
     {
         "name": "CHANEL",
@@ -642,6 +629,9 @@ def diagnose(src):
             m = re.findall(r'(?i)(?:appId|applicationId|ALGOLIA_APP_ID)["\']?\s*[:=]\s*["\']([A-Z0-9]{8,12})', t)
             if m:
                 notes.append(f"  algolia app: {m[0]}")
+            refs = sorted(set(re.findall(r'(?<![A-Za-z0-9])([A-Z]{3,6}\d{5})(?![A-Za-z0-9])', t)))
+            if refs:
+                notes.append(f"  refs: {len(refs)} e.g. {', '.join(refs[:6])}")
             for api in sorted(set(re.findall(r'https?://[\w.-]+/[\w./-]*(?:api|search|jobs)[\w./-]*', t)))[:5]:
                 notes.append(f"  url: {api[:120]}")
         except requests.RequestException as e:
