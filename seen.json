@@ -16,8 +16,13 @@
 "Dishoom",
 "Black Sheep Coffee"
 ],
-"errors": {},
-"last_run": 1795370093
+"errors": {
+"CHANEL": {
+"alerted": 0,
+"count": 1
+}
+},
+"last_run": 1795370857
 },
 "seen": {
 "Black Sheep Coffee|18YqN1xx4mWHEPPy23uQDL": 1795370093,
