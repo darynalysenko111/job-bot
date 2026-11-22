@@ -17,13 +17,14 @@ Secrets (GitHub -> Settings -> Secrets and variables -> Actions):
 "python bot.py --test" sends a report: how many jobs the bot sees per company.
 """
 
+import gzip
 import html
 import json
 import os
 import re
 import sys
 import time
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -108,7 +109,10 @@ SOURCES = [
     {
         "name": "Ralph Lauren",
         "type": "page",
-        "urls": ["https://careers.ralphlauren.com/CareersCorporate/SearchJobs/London"],
+        "urls": [
+            "https://careers.ralphlauren.com/CareersCorporate/SearchJobs/?listFilterMode=1&jobRecordsPerPage=100",
+            "https://careers.ralphlauren.com/CareersCorporate/SearchJobs",
+        ],
         "link_re": r"/CareersCorporate\w*/JobDetail\w*/[^\"'\s<>/?#]+/(\d+)",
     },
     {
@@ -148,7 +152,8 @@ SOURCES = [
         "name": "Freuds (PR agency)",
         "type": "page",
         "urls": ["https://www.freuds.com/careers"],
-        "link_re": r"/careers/([a-z0-9][\w\-]+)",
+        "link_re": r"(?:freuds\.com/|[\"'/])careers/([a-z0-9][\w\-]+)",
+        "job_url": "https://www.freuds.com/careers/{id}",
     },
 
     # ---------- Restaurants, coffee, hospitality ----------
@@ -287,30 +292,91 @@ def _get(url, **kw):
     return requests.get(url, headers=HEADERS, timeout=25, **kw)
 
 
+def _collect(text, base_url, src, found, order):
+    link_re = re.compile(src["link_re"])
+    for m in link_re.finditer(text):
+        jid = m.group(1)
+        if jid in found:
+            continue
+        if src.get("job_url"):
+            url = src["job_url"].format(id=jid)
+        else:
+            url = urljoin(base_url, m.group(0).replace("&amp;", "&").lstrip("\"'"))
+        found[jid] = url
+        order.append(jid)
+    if src.get("json_re") and src.get("job_url"):
+        for jid in re.findall(src["json_re"], text):
+            if jid not in found:
+                found[jid] = src["job_url"].format(id=jid)
+                order.append(jid)
+
+
+def _sitemap_urls(page_url):
+    """Find sitemap files of a site via robots.txt, else /sitemap.xml."""
+    parts = urlparse(page_url)
+    root = f"{parts.scheme}://{parts.netloc}"
+    maps = []
+    try:
+        r = _get(root + "/robots.txt")
+        if r.ok:
+            maps = re.findall(r"(?im)^\s*sitemap:\s*(\S+)", r.text)
+    except requests.RequestException:
+        pass
+    return maps or [root + "/sitemap.xml"]
+
+
+def scan_sitemaps(src, found, order, max_files=15, max_bytes=8_000_000):
+    queue = []
+    for u in src["urls"]:
+        for sm in _sitemap_urls(u):
+            if sm not in queue:
+                queue.append(sm)
+    seen_files, total = set(), 0
+    while queue and len(seen_files) < max_files and total < max_bytes:
+        # Prefer sitemap files that look job related.
+        queue.sort(key=lambda u: 0 if re.search(r"job|career|vacanc|offer|position", u, re.I) else 1)
+        sm = queue.pop(0)
+        if sm in seen_files:
+            continue
+        seen_files.add(sm)
+        try:
+            r = _get(sm)
+        except requests.RequestException:
+            continue
+        if not r.ok:
+            continue
+        text = r.text
+        if sm.endswith(".gz") or r.content[:2] == b"\x1f\x8b":
+            try:
+                text = gzip.decompress(r.content).decode("utf-8", "replace")
+            except OSError:
+                pass
+        total += len(text)
+        _collect(text, sm, src, found, order)
+        if "<sitemapindex" in text:
+            for child in re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", text):
+                if child not in seen_files:
+                    queue.append(child.replace("&amp;", "&"))
+
+
 def list_page(src):
     found, order = {}, []
-    link_re = re.compile(src["link_re"])
-    json_re = re.compile(src["json_re"]) if src.get("json_re") else None
     for page_url in src["urls"]:
-        r = _get(page_url)
+        try:
+            r = _get(page_url)
+        except requests.RequestException as e:
+            print(f"[{src['name']}] {page_url} failed: {e}")
+            continue
         if not r.ok:
             print(f"[{src['name']}] {page_url} -> HTTP {r.status_code}")
             continue
-        for m in link_re.finditer(r.text):
-            jid = m.group(1)
-            if jid in found:
-                continue
-            if src.get("job_url"):
-                url = src["job_url"].format(id=jid)
-            else:
-                url = urljoin(page_url, m.group(0).replace("&amp;", "&"))
-            found[jid] = url
-            order.append(jid)
-        if json_re and src.get("job_url"):
-            for jid in json_re.findall(r.text):
-                if jid not in found:
-                    found[jid] = src["job_url"].format(id=jid)
-                    order.append(jid)
+        _collect(r.text, page_url, src, found, order)
+    src["_via"] = "page"
+    if not order:
+        # Jobs are probably loaded by JavaScript: try the site's sitemap.
+        scan_sitemaps(src, found, order)
+        src["_via"] = "sitemap"
+    # Newest jobs usually have the highest ids / come last in sitemaps.
     return [{"key": f"{src['name']}|{jid}", "url": found[jid], "needs_page": True} for jid in order]
 
 
@@ -320,8 +386,14 @@ def list_workday(src):
     while offset < 200:
         body = {"appliedFacets": {}, "limit": 20, "offset": offset,
                 "searchText": src.get("search", "")}
-        r = requests.post(api, json=body, headers={**HEADERS, "Accept": "application/json"},
-                          timeout=25)
+        hdrs = {**HEADERS, "Accept": "application/json", "Content-Type": "application/json",
+                "Origin": f"https://{src['host']}",
+                "Referer": f"https://{src['host']}/en-US/{src['site']}"}
+        for attempt in range(4):
+            r = requests.post(api, json=body, headers=hdrs, timeout=25)
+            if r.status_code != 429:
+                break
+            time.sleep(10 * (attempt + 1))
         r.raise_for_status()
         data = r.json()
         posts = data.get("jobPostings", [])
@@ -343,16 +415,45 @@ def list_workday(src):
 
 
 def list_greenhouse(src):
-    host = "boards-api.eu.greenhouse.io" if src.get("eu") else "boards-api.greenhouse.io"
-    r = _get(f"https://{host}/v1/boards/{src['token']}/jobs")
-    r.raise_for_status()
-    return [{
-        "key": f"{src['name']}|{j['id']}",
-        "url": j.get("absolute_url", ""),
-        "title": j.get("title", ""),
-        "location": (j.get("location") or {}).get("name", ""),
-        "needs_page": False,
-    } for j in r.json().get("jobs", [])]
+    token = src["token"]
+    hosts = (["boards-api.eu.greenhouse.io", "boards-api.greenhouse.io"] if src.get("eu")
+             else ["boards-api.greenhouse.io", "boards-api.eu.greenhouse.io"])
+    for host in hosts:
+        try:
+            r = _get(f"https://{host}/v1/boards/{token}/jobs")
+        except requests.RequestException:
+            continue
+        if r.ok:
+            src["_via"] = "api"
+            return [{
+                "key": f"{src['name']}|{j['id']}",
+                "url": j.get("absolute_url", ""),
+                "title": j.get("title", ""),
+                "location": (j.get("location") or {}).get("name", ""),
+                "needs_page": False,
+            } for j in r.json().get("jobs", [])]
+    # API closed: read the public job board page instead.
+    page_src = {
+        "name": src["name"],
+        "urls": [f"https://job-boards.eu.greenhouse.io/{token}",
+                 f"https://job-boards.greenhouse.io/{token}"]
+                if src.get("eu") else
+                [f"https://job-boards.greenhouse.io/{token}",
+                 f"https://job-boards.eu.greenhouse.io/{token}"],
+        "link_re": r"(?:https://job-boards(?:\.eu)?\.greenhouse\.io)?/" + re.escape(token) + r"/jobs/(\d+)",
+    }
+    found, order = {}, []
+    for u in page_src["urls"]:
+        try:
+            r = _get(u)
+        except requests.RequestException:
+            continue
+        if r.ok:
+            _collect(r.text, u, page_src, found, order)
+        if order:
+            break
+    src["_via"] = "board page"
+    return [{"key": f"{src['name']}|{jid}", "url": found[jid], "needs_page": True} for jid in order]
 
 
 def list_lever(src):
@@ -426,7 +527,7 @@ def check_source(src, state, now):
     stubs = ADAPTERS[src["type"]](src)
     print(f"[{name}] jobs listed: {len(stubs)}")
     if not stubs:
-        raise RuntimeError("no jobs found on the page (site may have changed)")
+        return []  # nothing listed right now; first-check memory waits for real data
 
     # First successful check: remember what exists, send nothing.
     if name not in state["meta"]["baselined"]:
@@ -520,7 +621,9 @@ def test():
         try:
             stubs = ADAPTERS[src["type"]](src)
             mark = "✅" if stubs else "⚠️"
-            lines.append(f"{mark} {src['name']}: вакансий видно {len(stubs)}")
+            via = {"sitemap": " (через карту сайта)", "board page": " (через страницу вакансий)"}.get(
+                src.get("_via", ""), "")
+            lines.append(f"{mark} {src['name']}: вакансий видно {len(stubs)}{via}")
         except Exception as e:
             lines.append(f"❌ {src['name']}: {str(e)[:120]}")
     lines += ["", "Если где-то ⚠️ или ❌, перешлите это сообщение Claude."]
