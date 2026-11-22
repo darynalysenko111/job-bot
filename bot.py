@@ -78,7 +78,6 @@ SOURCES = [
         "name": "LVMH (Dior, Louis Vuitton, Celine, Moët Hennessy, Guerlain...)",
         "type": "page",
         "urls": [
-            "https://www.lvmh.com/en/our-job-offers?place=London",
             "https://www.lvmh.com/en/our-job-offers",
             "https://www.lvmh.com/en/join-us/our-job-offers",
         ],
@@ -109,6 +108,11 @@ SOURCES = [
             "https://careers.ralphlauren.com/CareersCorporate/SearchJobs",
         ],
         "link_re": r"/CareersCorporate\w*/JobDetail\w*/[^\"'\s<>/?#]+/(\d+)",
+        "sitemaps": [
+            "https://ralphlauren.avature.net/CareersCorporate/sitemap_index.xml",
+            "https://careers.ralphlauren.com/CareersCorporate/sitemap_index.xml",
+            "https://ralphlauren.avature.net/CareersCorporate/sitemap.xml",
+        ],
     },
     {
         "name": "CHANEL",
@@ -121,7 +125,6 @@ SOURCES = [
 
     # ---------- Marketing & PR agencies ----------
     {"name": "Hanover (PR agency)", "type": "greenhouse", "token": "hanover"},
-    {"name": "Burson (PR agency)", "type": "greenhouse", "token": "bursonglobal"},
     {"name": "DEPT (marketing agency)", "type": "greenhouse", "token": "dept"},
     {"name": "Fully Vested (PR agency)", "type": "lever", "company": "fullyvested"},
     {
@@ -165,19 +168,15 @@ SOURCES = [
         "link_re": r"/job/([A-Za-z0-9]{15,26})",
         "job_url": "https://careers.blacksheepcoffee.co.uk/job/{id}",
     },
-    {
-        "name": "Hawksmoor",
-        "type": "page",
-        "urls": ["https://harri.com/Hawksmoorcareers"],
-        "link_re": r"/Hawksmoor[\w\-]*/job/(\d{5,})-[\w\-.]+",
-    },
 ]
 
 MAX_JOB_PAGES_PER_SOURCE = 25  # new job pages opened per company per run
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen.json")
 MAX_SEEN = 30000
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; personal-job-alert-bot/2.0)",
+    "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/130.0 Safari/537.36 personal-job-alert-bot/2.1"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7",
     "Accept-Language": "en-GB,en;q=0.9",
 }
 
@@ -282,8 +281,20 @@ def format_job(job):
 # =====================================================================
 
 
-def _get(url, **kw):
-    return requests.get(url, headers=HEADERS, timeout=25, **kw)
+def _get(url, timeout=25, **kw):
+    """GET with one retry for slow or busy sites."""
+    r = None
+    for attempt in range(2):
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=timeout if attempt == 0 else 60, **kw)
+        except requests.Timeout:
+            if attempt == 1:
+                raise
+            continue
+        if r.status_code not in (408, 429, 502, 503, 504):
+            return r
+        time.sleep(5)
+    return r
 
 
 def _collect(text, base_url, src, found, order):
@@ -320,7 +331,7 @@ def _sitemap_urls(page_url):
 
 
 def scan_sitemaps(src, found, order, max_files=15, max_bytes=8_000_000):
-    queue = []
+    queue = list(src.get("sitemaps", []))
     for u in src["urls"]:
         for sm in _sitemap_urls(u):
             if sm not in queue:
@@ -618,7 +629,7 @@ def run():
 def diagnose(src):
     """Short technical notes about a site where no jobs were found."""
     notes = []
-    for u in src.get("urls", [])[:2]:
+    for u in src.get("urls", [])[:3]:
         try:
             r = _get(u)
             t = r.text
