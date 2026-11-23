@@ -124,13 +124,13 @@ SOURCES = [
     {
         "name": "Influencer (creator marketing agency)",
         "type": "page",
-        "urls": ["https://influencer.teamtailor.com/jobs", "https://influencer.teamtailor.com/jobs.rss"],
+        "urls": ["https://influencer.teamtailor.com/jobs", "https://influencer.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
         "name": "Uncovered (social agency)",
         "type": "page",
-        "urls": ["https://uncoveredgroup-1688718843.teamtailor.com/jobs", "https://uncoveredgroup-1688718843.teamtailor.com/jobs.rss"],
+        "urls": ["https://uncoveredgroup-1688718843.teamtailor.com/jobs", "https://uncoveredgroup-1688718843.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
@@ -185,7 +185,7 @@ SOURCES = [
     {
         "name": "White Stuff",
         "type": "page",
-        "urls": ["https://careers.whitestuff.com/jobs", "https://careers.whitestuff.com/jobs.rss"],
+        "urls": ["https://careers.whitestuff.com/jobs", "https://careers.whitestuff.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },    # ---------- Media, entertainment, tech and other great London businesses ----------
     {"name": "The Business of Fashion", "type": "greenhouse", "token": "businessoffashion"},
@@ -195,14 +195,14 @@ SOURCES = [
     {
         "name": "Flightstory (The Diary of a CEO)",
         "type": "page",
-        "urls": ["https://flightstory.teamtailor.com/jobs", "https://flightstory.teamtailor.com/jobs.rss"],
+        "urls": ["https://flightstory.teamtailor.com/jobs", "https://flightstory.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {"name": "OLIVER (in-house agencies)", "type": "greenhouse", "token": "oliver"},
     {
         "name": "Lucky Seven Marketing",
         "type": "page",
-        "urls": ["https://thegrowthfoundation-1640252175.teamtailor.com/jobs", "https://thegrowthfoundation-1640252175.teamtailor.com/jobs.rss"],
+        "urls": ["https://thegrowthfoundation-1640252175.teamtailor.com/jobs", "https://thegrowthfoundation-1640252175.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {"name": "GWI", "type": "greenhouse", "token": "globalwebindex"},
@@ -219,31 +219,31 @@ SOURCES = [
     {
         "name": "Missoma",
         "type": "page",
-        "urls": ["https://careers.missoma.com/jobs", "https://careers.missoma.com/jobs.rss"],
+        "urls": ["https://careers.missoma.com/jobs", "https://careers.missoma.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
         "name": "RIXO",
         "type": "page",
-        "urls": ["https://rixo.teamtailor.com/jobs", "https://rixo.teamtailor.com/jobs.rss"],
+        "urls": ["https://rixo.teamtailor.com/jobs", "https://rixo.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
         "name": "Space NK",
         "type": "page",
-        "urls": ["https://careers.spacenk.com/jobs", "https://careers.spacenk.com/jobs.rss"],
+        "urls": ["https://careers.spacenk.com/jobs", "https://careers.spacenk.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
         "name": "Monica Vinader",
         "type": "page",
-        "urls": ["https://careers.monicavinader.com/jobs", "https://careers.monicavinader.com/jobs.rss"],
+        "urls": ["https://careers.monicavinader.com/jobs", "https://careers.monicavinader.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
     {
         "name": "Astrid & Miyu",
         "type": "page",
-        "urls": ["https://astridmiyu.teamtailor.com/jobs", "https://astridmiyu.teamtailor.com/jobs.rss"],
+        "urls": ["https://astridmiyu.teamtailor.com/jobs", "https://astridmiyu.teamtailor.com/jobs.rss"], "empty_ok": True,
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
 
@@ -261,34 +261,50 @@ SOURCES = [
     {"name": "VCCP Roar (PR agency)", "type": "greenhouse", "token": "vccproar", "eu": True},
     {"name": "Brainlabs", "type": "greenhouse", "token": "brainlabs", "eu": True},
     {"name": "Sunshine Sachs (PR agency)", "type": "lever", "company": "sunshinesachs"},
-    {"name": "Edelman", "type": "lever", "company": "djeholdings"},
-    {"name": "Zeno Group (PR agency)", "type": "lever", "company": "zenogroup"},
     {"name": "We Are Social (social agency)", "type": "workable", "slug": "we-are-social-1"},
+    {
+        "name": "Weber Shandwick (PR agency)",
+        "type": "page",
+        "urls": ["https://webershandwick.co.uk/careers/", "https://webershandwick.co.uk/jobs/"],
+        "link_re": r"webershandwick\.co\.uk/job/([a-z0-9][\w\-]+)",
+        "job_url": "https://webershandwick.co.uk/job/{id}",
+    },
+    {
+        "name": "London & Partners",
+        "type": "page",
+        "urls": ["https://talent.londonandpartners.com/"],
+        "link_re": r"/postings/([0-9a-f]{8}-[0-9a-f\-]{27})",
+    },
     {"name": "re:act marketing", "type": "workable", "slug": "re-act-marketing-ltd"},
     {"name": "Inspired Thinking Group", "type": "workable", "slug": "itg"},
     {"name": "Channel Factory", "type": "workable", "slug": "channel-factory"},
     {"name": "Eventogy (events)", "type": "workable", "slug": "eventogy"},
     {"name": "The Specialist Works", "type": "workable", "slug": "thespecialistworks"},
     {"name": "Living Things", "type": "workable", "slug": "living-things-1"},
-    {"name": "The Romans (PR agency)", "type": "page", "urls": ["https://theromans.teamtailor.com/jobs", "https://theromans.teamtailor.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
-    {"name": "MHP Group / Mischief", "type": "page", "urls": ["https://mhpgroup.teamtailor.com/jobs", "https://mhpgroup.teamtailor.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
-    {"name": "M&C Saatchi", "type": "page", "urls": ["https://careers.mcsaatchi.com/jobs", "https://careers.mcsaatchi.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
-    {"name": "Publicis Groupe UK (Taylor Herring, Saatchi...)", "type": "smartrecruiters", "company": "PublicisGroupe", "extra": "&country=gb"},
+    {"name": "The Romans (PR agency)", "type": "page", "urls": ["https://theromans.teamtailor.com/jobs", "https://theromans.teamtailor.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "MHP Group / Mischief", "type": "page", "urls": ["https://mhpgroup.teamtailor.com/jobs", "https://mhpgroup.teamtailor.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "M&C Saatchi", "type": "page", "urls": ["https://careers.mcsaatchi.com/jobs", "https://careers.mcsaatchi.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
 
     # ---------- Music, media, entertainment ----------
     {"name": "Sony Music", "type": "greenhouse", "token": "sonymusicentertainment"},
     {"name": "AWAL", "type": "greenhouse", "token": "awalsme"},
     {"name": "DICE", "type": "greenhouse", "token": "dicefm-careers", "eu": True},
     {"name": "Spotify", "type": "lever", "company": "spotify"},
-    {"name": "Amuse", "type": "page", "urls": ["https://careers.amuse.io/jobs", "https://careers.amuse.io/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
-    {"name": "The Stage Media Company", "type": "page", "urls": ["https://thestagemediacompany.teamtailor.com/jobs", "https://thestagemediacompany.teamtailor.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Amuse", "type": "page", "urls": ["https://careers.amuse.io/jobs", "https://careers.amuse.io/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "The Stage Media Company", "type": "page", "urls": ["https://thestagemediacompany.teamtailor.com/jobs", "https://thestagemediacompany.teamtailor.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
     {"name": "Authentic Brands Group", "type": "greenhouse", "token": "authenticbrandsgroup"},
 
     # ---------- Beauty, fashion, lifestyle brands ----------
     {"name": "Gymshark", "type": "greenhouse", "token": "gymshark", "eu": True},
     {"name": "Wolf & Badger", "type": "workable", "slug": "wolfandbadger"},
-    {"name": "Oner Active", "type": "page", "urls": ["https://oneractive.teamtailor.com/jobs", "https://oneractive.teamtailor.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
-    {"name": "Oh Polly", "type": "page", "urls": ["https://careers.ohpolly.com/jobs", "https://careers.ohpolly.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {
+        "name": "Tala",
+        "type": "page",
+        "urls": ["https://join.com/companies/wearetala"],
+        "link_re": r"/companies/wearetala/(\d{6,})-[\w\-]+",
+    },
+    {"name": "Oner Active", "type": "page", "urls": ["https://oneractive.teamtailor.com/jobs", "https://oneractive.teamtailor.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Oh Polly", "type": "page", "urls": ["https://careers.ohpolly.com/jobs", "https://careers.ohpolly.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
     {"name": "Tatcha / Prestige Beauty", "type": "greenhouse", "token": "prestigeukhub", "eu": True},
     {"name": "Glossier", "type": "greenhouse", "token": "glossier"},
     {"name": "Reformation", "type": "greenhouse", "token": "reformation"},
@@ -298,7 +314,7 @@ SOURCES = [
     {"name": "Trinny London", "type": "workable", "slug": "trinnylondon"},
     {"name": "Ocean Bottle", "type": "recruitee", "company": "oceanbottle"},
     {"name": "Olsam Group", "type": "recruitee", "company": "olsamgroup"},
-    {"name": "Huel", "type": "page", "urls": ["https://careers.huel.com/jobs", "https://careers.huel.com/jobs.rss"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Huel", "type": "page", "urls": ["https://careers.huel.com/jobs", "https://careers.huel.com/jobs.rss"], "empty_ok": True, "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
 
     # ---------- Food, drink, hospitality ----------
     {"name": "Deliveroo", "type": "greenhouse", "token": "deliveroo"},
@@ -737,7 +753,7 @@ def check_source(src, state, now):
         # Job-board services answer reliably, so "0 jobs" there really means none are open:
         # start watching now so the very first new job is sent. For other sites 0 may mean
         # the page did not load properly, so first-check memory waits for real data.
-        if src["type"] != "page" and name not in state["meta"]["baselined"]:
+        if (src["type"] != "page" or src.get("empty_ok")) and name not in state["meta"]["baselined"]:
             state["meta"]["baselined"].append(name)
         return []
 
@@ -901,7 +917,7 @@ def test():
     with ThreadPoolExecutor(max_workers=PARALLEL_CHECKS) as ex:
         results = list(ex.map(probe, SOURCES))
 
-    ok_lines, bad_lines, details = [], [], []
+    ok_lines, bad_lines, empty_lines, details = [], [], [], []
     for src, stubs, e, extra in results:
         if e is not None:
             bad_lines.append(f"❌ {src['name']}: {str(e)[:120]}")
@@ -910,15 +926,20 @@ def test():
             src.get("_via", ""), "")
         if stubs:
             ok_lines.append(f"✅ {src['name']}: {len(stubs)}{via}")
+        elif src["type"] != "page" or src.get("empty_ok"):
+            empty_lines.append(f"💤 {src['name']}")
         else:
             bad_lines.append(f"⚠️ {src['name']}: вакансий не видно")
             if extra:
                 details.extend([f"[{src['name'][:30]}]"] + extra)
 
     lines = ["✅ Бот вакансий подключён к Telegram.", "",
-             f"Работают {len(ok_lines)} из {len(SOURCES)} компаний.", ""]
+             f"Работают {len(ok_lines) + len(empty_lines)} из {len(SOURCES)} компаний.", ""]
     if bad_lines:
         lines += ["Не получилось проверить:"] + bad_lines + [""]
+    if empty_lines:
+        lines += ["Сайт работает, но сейчас нет открытых вакансий (бот следит и пришлёт первую же):"]
+        lines += empty_lines + [""]
     lines += ["Работают (сколько вакансий видно сейчас):"] + ok_lines
     lines += ["", "Если где-то ⚠️ или ❌, перешлите эти сообщения Claude."]
     msg = "\n".join(lines)
