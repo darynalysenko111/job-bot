@@ -16,8 +16,13 @@
 "Dishoom",
 "Black Sheep Coffee"
 ],
-"errors": {},
-"last_run": 1795416735
+"errors": {
+"CHANEL": {
+"alerted": 0,
+"count": 1
+}
+},
+"last_run": 1795422061
 },
 "seen": {
 "Black Sheep Coffee|18YqN1xx4mWHEPPy23uQDL": 1795370093,
@@ -389,6 +394,7 @@
 "Influencer (creator marketing agency)|8589250": 1795370093,
 "Influencer (creator marketing agency)|8592788": 1795370093,
 "LVMH (Dior, Louis Vuitton, Celine, Moët Hennessy, Guerlain...)|DSC06621": 1795370093,
+"Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136082": 1795422061,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136129": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136137": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136158": 1795370093,
@@ -400,6 +406,10 @@
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136178": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136186": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136187": 1795370093,
+"Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136188": 1795422061,
+"Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136189": 1795422061,
+"Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136190": 1795422061,
+"Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136191": 1795422061,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136196": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136198": 1795370093,
 "Richemont (Cartier, Van Cleef & Arpels, Chloé...)|jr136199": 1795370093,
