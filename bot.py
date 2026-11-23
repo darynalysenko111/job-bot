@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -188,16 +189,6 @@ SOURCES = [
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },    # ---------- Media, entertainment, tech and other great London businesses ----------
     {"name": "The Business of Fashion", "type": "greenhouse", "token": "businessoffashion"},
-    {
-        "name": "BoF Careers (fashion job board)",
-        "type": "page",
-        "urls": [
-            "https://www.businessoffashion.com/careers/jobs/london/",
-            "https://www.businessoffashion.com/careers/jobs/",
-        ],
-        "link_re": r"/careers/job/(\d{5,})/",
-        "job_url": "https://www.businessoffashion.com/careers/job/{id}/",
-    },
     {"name": "Financial Times", "type": "greenhouse", "token": "financialtimes33", "eu": True},
     {"name": "The Economist Group", "type": "greenhouse", "token": "theeconomistgroup", "eu": True},
     {"name": "Platform Media", "type": "greenhouse", "token": "platformmedia", "eu": True},
@@ -225,14 +216,6 @@ SOURCES = [
 
     # ---------- DTC fashion & jewellery brands ----------
     {"name": "APM Monaco", "type": "workable", "slug": "apm-monaco"},
-    {
-        "name": "House of CB",
-        "type": "page",
-        "urls": ["https://app.houseofcb.com/jobs", "https://app.houseofcb.com/careers",
-                 "https://app.houseofcb.com/job"],
-        "link_re": r"/job\?id=(\d+)",
-        "job_url": "https://app.houseofcb.com/job?id={id}",
-    },
     {
         "name": "Missoma",
         "type": "page",
@@ -263,8 +246,92 @@ SOURCES = [
         "urls": ["https://astridmiyu.teamtailor.com/jobs"],
         "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
+
+    # ---------- Agencies (PR, social, influencer, media) ----------
+    {"name": "Brunswick Group", "type": "greenhouse", "token": "brunswickgroup"},
+    {"name": "Burson", "type": "greenhouse", "token": "bursonglobal"},
+    {"name": "Axicom (PR agency)", "type": "greenhouse", "token": "axicom"},
+    {"name": "Ogilvy UK", "type": "greenhouse", "token": "ogilvyuk"},
+    {"name": "Movers+Shakers", "type": "greenhouse", "token": "moversshakers"},
+    {"name": "Fuse / OMG UK", "type": "greenhouse", "token": "omguk"},
+    {"name": "PMG", "type": "greenhouse", "token": "pmg"},
+    {"name": "Game Seven", "type": "greenhouse", "token": "gameseven"},
+    {"name": "Awin", "type": "greenhouse", "token": "awin"},
+    {"name": "LTK", "type": "greenhouse", "token": "ltkuk"},
+    {"name": "VCCP Roar (PR agency)", "type": "greenhouse", "token": "vccproar", "eu": True},
+    {"name": "Brainlabs", "type": "greenhouse", "token": "brainlabs", "eu": True},
+    {"name": "Sunshine Sachs (PR agency)", "type": "lever", "company": "sunshinesachs"},
+    {"name": "Edelman", "type": "lever", "company": "djeholdings"},
+    {"name": "Zeno Group (PR agency)", "type": "lever", "company": "zenogroup"},
+    {"name": "re:act marketing", "type": "workable", "slug": "re-act-marketing-ltd"},
+    {"name": "Inspired Thinking Group", "type": "workable", "slug": "itg"},
+    {"name": "Channel Factory", "type": "workable", "slug": "channel-factory"},
+    {"name": "Eventogy (events)", "type": "workable", "slug": "eventogy"},
+    {"name": "The Specialist Works", "type": "workable", "slug": "thespecialistworks"},
+    {"name": "Living Things", "type": "workable", "slug": "living-things-1"},
+    {"name": "The Romans (PR agency)", "type": "page", "urls": ["https://theromans.teamtailor.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "MHP Group / Mischief", "type": "page", "urls": ["https://mhpgroup.teamtailor.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Gravity Global", "type": "page", "urls": ["https://gravityglobal.teamtailor.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "M&C Saatchi", "type": "page", "urls": ["https://careers.mcsaatchi.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Publicis Groupe UK (Taylor Herring, Saatchi...)", "type": "smartrecruiters", "company": "PublicisGroupe", "extra": "&city=London"},
+
+    # ---------- Music, media, entertainment ----------
+    {"name": "Sony Music", "type": "greenhouse", "token": "sonymusicentertainment"},
+    {"name": "AWAL", "type": "greenhouse", "token": "awalsme"},
+    {"name": "DICE", "type": "greenhouse", "token": "dicefm-careers", "eu": True},
+    {"name": "Spotify", "type": "lever", "company": "spotify"},
+    {"name": "Amuse", "type": "page", "urls": ["https://careers.amuse.io/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "The Stage Media Company", "type": "page", "urls": ["https://thestagemediacompany.teamtailor.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {"name": "Authentic Brands Group", "type": "greenhouse", "token": "authenticbrandsgroup"},
+
+    # ---------- Beauty, fashion, lifestyle brands ----------
+    {"name": "Gymshark", "type": "greenhouse", "token": "gymshark", "eu": True},
+    {"name": "Wolf & Badger", "type": "workable", "slug": "wolfandbadger"},
+    {
+        "name": "AllSaints",
+        "type": "page",
+        "urls": ["https://careers.allsaints.com/"],
+        "link_re": r"/job/(\d{5,})",
+    },
+    {"name": "Tatcha / Prestige Beauty", "type": "greenhouse", "token": "prestigeukhub", "eu": True},
+    {"name": "Glossier", "type": "greenhouse", "token": "glossier"},
+    {"name": "Reformation", "type": "greenhouse", "token": "reformation"},
+    {"name": "e.l.f. Beauty", "type": "lever", "company": "elfbeauty"},
+    {"name": "Skin + Me", "type": "workable", "slug": "skinandme"},
+    {"name": "Wonderskin", "type": "workable", "slug": "wonderskin"},
+    {"name": "Trinny London", "type": "workable", "slug": "trinnylondon"},
+    {"name": "Ocean Bottle", "type": "recruitee", "company": "oceanbottle"},
+    {"name": "Olsam Group", "type": "recruitee", "company": "olsamgroup"},
+    {"name": "Huel", "type": "page", "urls": ["https://careers.huel.com/jobs"], "link_re": r"/jobs/(\d{5,})-[\w\-]+"},
+    {
+        "name": "Harrods",
+        "type": "page",
+        "urls": ["https://www.harrodscareers.com/"],
+        "link_re": r"/job/[^\"'\s<>?#]*?-jid-(\d+)",
+    },
+
+    # ---------- Food, drink, hospitality ----------
+    {"name": "Deliveroo", "type": "greenhouse", "token": "deliveroo"},
+    {"name": "Too Good To Go", "type": "greenhouse", "token": "toogoodtogo"},
+    {"name": "Joe & The Juice UK", "type": "greenhouse", "token": "jjuk", "eu": True},
+    {"name": "Convene", "type": "greenhouse", "token": "convene"},
+    {"name": "Accor UK (The Savoy, Fairmont, Ennismore)", "type": "smartrecruiters", "company": "AccorHotel", "extra": "&city=London"},
+    {"name": "EatClub", "type": "workable", "slug": "eatclub"},
+    {
+        "name": "innocent drinks",
+        "type": "page",
+        "urls": ["https://careers.innocentdrinks.co.uk/"],
+        "link_re": r"/job/(\d+)",
+    },
+    {
+        "name": "Greene King",
+        "type": "page",
+        "urls": ["https://jobs.greeneking.co.uk/"],
+        "link_re": r"/job/[^\"'\s<>?#]*?-jid-(\d+)",
+    },
 ]
 
+PARALLEL_CHECKS = 10  # companies checked at the same time
 MAX_JOB_PAGES_PER_SOURCE = 25  # new job pages opened per company per run
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen.json")
 MAX_SEEN = 30000
@@ -576,7 +643,8 @@ def list_lever(src):
 
 
 def list_smartrecruiters(src):
-    r = _get(f"https://api.smartrecruiters.com/v1/companies/{src['company']}/postings?limit=100")
+    r = _get(f"https://api.smartrecruiters.com/v1/companies/{src['company']}/postings?limit=100"
+             + src.get("extra", ""))
     r.raise_for_status()
     out = []
     for j in r.json().get("content", []):
@@ -724,6 +792,7 @@ def run():
     status_lines, problems = [], []
 
     all_jobs = []
+    due = []
     for src in SOURCES:
         name = src["name"]
         every = src.get("every_minutes")
@@ -731,20 +800,33 @@ def run():
         if every and now - last_ok < every * 60 - 120:
             continue
         state["meta"]["last_check"][name] = now
+        due.append(src)
+
+    def work(src):
         try:
-            jobs = check_source(src, state, now)
+            return src, check_source(src, state, now), None
+        except Exception as e:
+            return src, [], e
+
+    # Several companies are checked at the same time so 100+ sites fit into a few minutes.
+    with ThreadPoolExecutor(max_workers=PARALLEL_CHECKS) as ex:
+        results = list(ex.map(work, due))
+
+    for src, jobs, e in results:
+        name = src["name"]
+        if e is None:
             all_jobs.extend(jobs)
             state["meta"]["errors"].pop(name, None)
-        except Exception as e:
-            print(f"[{name}] ERROR: {e}")
-            err = state["meta"]["errors"].setdefault(name, {"count": 0, "alerted": 0})
-            err["count"] += 1
-            # Alert after about an hour of failures (a full day for "too many requests"),
-            # then at most once a day.
-            limit = 48 if "429" in str(e) else 6
-            if err["count"] >= limit and now - err.get("alerted", 0) > 24 * 3600:
-                problems.append(f"• {name}: {e}")
-                err["alerted"] = now
+            continue
+        print(f"[{name}] ERROR: {e}")
+        err = state["meta"]["errors"].setdefault(name, {"count": 0, "alerted": 0})
+        err["count"] += 1
+        # Alert after about an hour of failures (a full day for "too many requests"),
+        # then at most once a day.
+        limit = 48 if "429" in str(e) else 6
+        if err["count"] >= limit and now - err.get("alerted", 0) > 24 * 3600:
+            problems.append(f"• {name}: {e}")
+            err["alerted"] = now
 
     # Tell the user once when companies start being watched.
     started = [n for n in state["meta"]["baselined"] if n not in newly_baselined_before]
@@ -797,28 +879,57 @@ def diagnose(src):
     return notes
 
 
+def tg_send_long(text):
+    """Send a long text as several Telegram messages."""
+    chunk = ""
+    for line in text.split("\n"):
+        if len(chunk) + len(line) + 1 > 3800:
+            tg_send(html.escape(chunk))
+            chunk = ""
+        chunk += line + "\n"
+    if chunk.strip():
+        tg_send(html.escape(chunk))
+
+
 def test():
-    lines = ["✅ Бот вакансий подключён к Telegram.", "", "Проверка сайтов:"]
-    details = []
-    for src in SOURCES:
+    def probe(src):
         try:
             stubs = ADAPTERS[src["type"]](src)
-            mark = "✅" if stubs else "⚠️"
-            via = {"sitemap": " (через карту сайта)", "board page": " (через страницу вакансий)"}.get(
-                src.get("_via", ""), "")
-            lines.append(f"{mark} {src['name']}: вакансий видно {len(stubs)}{via}")
-            if not stubs and src["type"] == "page":
-                details.extend([f"[{src['name'][:30]}]"] + diagnose(src))
+            extra = diagnose(src) if (not stubs and src["type"] == "page") else []
+            return src, stubs, None, extra
         except Exception as e:
-            lines.append(f"❌ {src['name']}: {str(e)[:120]}")
-    lines += ["", "Если где-то ⚠️ или ❌, перешлите это сообщение Claude."]
+            return src, [], e, []
+
+    with ThreadPoolExecutor(max_workers=PARALLEL_CHECKS) as ex:
+        results = list(ex.map(probe, SOURCES))
+
+    ok_lines, bad_lines, details = [], [], []
+    for src, stubs, e, extra in results:
+        if e is not None:
+            bad_lines.append(f"❌ {src['name']}: {str(e)[:120]}")
+            continue
+        via = {"sitemap": " (через карту сайта)", "board page": " (через страницу вакансий)"}.get(
+            src.get("_via", ""), "")
+        if stubs:
+            ok_lines.append(f"✅ {src['name']}: {len(stubs)}{via}")
+        else:
+            bad_lines.append(f"⚠️ {src['name']}: вакансий не видно")
+            if extra:
+                details.extend([f"[{src['name'][:30]}]"] + extra)
+
+    lines = ["✅ Бот вакансий подключён к Telegram.", "",
+             f"Работают {len(ok_lines)} из {len(SOURCES)} компаний.", ""]
+    if bad_lines:
+        lines += ["Не получилось проверить:"] + bad_lines + [""]
+    lines += ["Работают (сколько вакансий видно сейчас):"] + ok_lines
+    lines += ["", "Если где-то ⚠️ или ❌, перешлите эти сообщения Claude."]
     msg = "\n".join(lines)
     print(msg)
-    tg_send(html.escape(msg))
+    tg_send_long(msg)
     if details:
         detail_msg = "🔧 Технические детали для Claude:\n" + "\n".join(details)
         print(detail_msg)
-        tg_send(html.escape(detail_msg[:3900]))
+        tg_send_long(detail_msg[:11000])
 
 
 if __name__ == "__main__":
