@@ -38,10 +38,14 @@ ROLE_KEYWORDS = [
     "marketing", "pr", "public relations", "press",
     "communications", "communication", "comms",
     "events", "event",
+    "brand", "social media", "influencer",
 ]
 
 # ...and one of these.
-LEVEL_KEYWORDS = ["intern", "internship", "interns", "executive"]
+LEVEL_KEYWORDS = [
+    "intern", "internship", "interns", "executive",
+    "assistant", "coordinator", "co-ordinator",
+]
 
 # Never send jobs containing these.
 STOP_WORDS = [
@@ -108,6 +112,8 @@ SOURCES = [
         "tenant": "cc",
         "site": "ChanelCareers",
         "search": "London",
+        "every_minutes": 30,   # this site limits frequent requests
+        "max_pages": 1,
     },
 
     # ---------- Marketing & PR agencies ----------
@@ -154,6 +160,108 @@ SOURCES = [
         "urls": ["https://careers.blacksheepcoffee.co.uk/", "https://careers.leavetheherdbehind.com/"],
         "link_re": r"/job/([A-Za-z0-9]{15,26})",
         "job_url": "https://careers.blacksheepcoffee.co.uk/job/{id}",
+    },
+    # ---------- Beauty, fashion, retail (added) ----------
+    {"name": "Charlotte Tilbury", "type": "workable", "slug": "charlotte-tilbury"},
+    {"name": "Farfetch", "type": "lever", "company": "farfetch"},
+    {"name": "Mulberry", "type": "lever", "company": "mulberry"},
+    {"name": "Lyst", "type": "workable", "slug": "lyst"},
+    {"name": "Jaded London", "type": "workable", "slug": "jaded-london-2"},
+    {"name": "Beauty Pie", "type": "greenhouse", "token": "beautypie", "eu": True},
+    {"name": "KIKO Milano", "type": "recruitee", "company": "kikomilano"},
+    {
+        "name": "Selfridges",
+        "type": "page",
+        "urls": ["https://jobsearch.selfridges.com/jobs/", "https://jobsearch.selfridges.com/"],
+        "link_re": r"/jobs/job/[^\"'\s<>?#/]+/(\d+)",
+    },
+    {
+        "name": "END. Clothing",
+        "type": "page",
+        "urls": ["https://careers.endclothing.com/"],
+        "link_re": r"/p/([0-9a-f]{10,})-[\w\-]+",
+    },
+    {
+        "name": "White Stuff",
+        "type": "page",
+        "urls": ["https://careers.whitestuff.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },    # ---------- Media, entertainment, tech and other great London businesses ----------
+    {"name": "The Business of Fashion", "type": "greenhouse", "token": "businessoffashion"},
+    {
+        "name": "BoF Careers (fashion job board)",
+        "type": "page",
+        "urls": [
+            "https://www.businessoffashion.com/careers/jobs/london/",
+            "https://www.businessoffashion.com/careers/jobs/",
+        ],
+        "link_re": r"/careers/job/(\d{5,})/",
+        "job_url": "https://www.businessoffashion.com/careers/job/{id}/",
+    },
+    {"name": "Financial Times", "type": "greenhouse", "token": "financialtimes33", "eu": True},
+    {"name": "The Economist Group", "type": "greenhouse", "token": "theeconomistgroup", "eu": True},
+    {"name": "Platform Media", "type": "greenhouse", "token": "platformmedia", "eu": True},
+    {
+        "name": "Flightstory (The Diary of a CEO)",
+        "type": "page",
+        "urls": ["https://flightstory.teamtailor.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {"name": "OLIVER (in-house agencies)", "type": "greenhouse", "token": "oliver"},
+    {
+        "name": "Lucky Seven Marketing",
+        "type": "page",
+        "urls": ["https://thegrowthfoundation-1640252175.teamtailor.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {"name": "GWI", "type": "greenhouse", "token": "globalwebindex"},
+    {"name": "Fospha", "type": "greenhouse", "token": "fosphamarketing"},
+    {"name": "dunnhumby", "type": "greenhouse", "token": "dunnhumby"},
+    {"name": "Founders Forum Group", "type": "workable", "slug": "foundersforum"},
+    {"name": "Togather (events)", "type": "workable", "slug": "togather"},
+    {"name": "TGP International (hospitality)", "type": "workable", "slug": "tgp-international-3"},
+    {"name": "Queensmith (jewellery)", "type": "workable", "slug": "queensmith"},
+    {"name": "Stef Philips (jewellery)", "type": "recruitee", "company": "stefphilips"},
+
+    # ---------- DTC fashion & jewellery brands ----------
+    {"name": "APM Monaco", "type": "workable", "slug": "apm-monaco"},
+    {
+        "name": "House of CB",
+        "type": "page",
+        "urls": ["https://app.houseofcb.com/jobs", "https://app.houseofcb.com/careers",
+                 "https://app.houseofcb.com/job"],
+        "link_re": r"/job\?id=(\d+)",
+        "job_url": "https://app.houseofcb.com/job?id={id}",
+    },
+    {
+        "name": "Missoma",
+        "type": "page",
+        "urls": ["https://careers.missoma.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {
+        "name": "RIXO",
+        "type": "page",
+        "urls": ["https://rixo.teamtailor.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {
+        "name": "Space NK",
+        "type": "page",
+        "urls": ["https://careers.spacenk.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {
+        "name": "Monica Vinader",
+        "type": "page",
+        "urls": ["https://careers.monicavinader.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
+    },
+    {
+        "name": "Astrid & Miyu",
+        "type": "page",
+        "urls": ["https://astridmiyu.teamtailor.com/jobs"],
+        "link_re": r"/jobs/(\d{5,})-[\w\-]+",
     },
 ]
 
@@ -381,17 +489,18 @@ def list_workday(src):
     except requests.RequestException:
         pass
     stubs, offset = [], 0
-    while offset < 200:
+    max_offset = 20 * src.get("max_pages", 10)
+    while offset < max_offset:
         body = {"appliedFacets": {}, "limit": 20, "offset": offset,
                 "searchText": src.get("search", "")}
         hdrs = {**HEADERS, "Accept": "application/json", "Content-Type": "application/json",
                 "Origin": f"https://{src['host']}",
                 "Referer": f"https://{src['host']}/en-US/{src['site']}"}
-        for attempt in range(4):
+        for attempt in range(2):
             r = sess.post(api, json=body, headers=hdrs, timeout=25)
             if r.status_code != 429:
                 break
-            time.sleep(10 * (attempt + 1))
+            time.sleep(15)
         r.raise_for_status()
         data = r.json()
         posts = data.get("jobPostings", [])
@@ -482,7 +591,46 @@ def list_smartrecruiters(src):
     return out
 
 
+def list_workable(src):
+    slug = src["slug"]
+    r = _get(f"https://apply.workable.com/api/v1/widget/accounts/{slug}")
+    r.raise_for_status()
+    out = []
+    for j in r.json().get("jobs", []):
+        locs = j.get("locations") or []
+        loc = ", ".join(x for x in [j.get("city"), j.get("country")] if x)
+        if not loc and locs:
+            loc = ", ".join(x for x in [locs[0].get("city"), locs[0].get("country")] if x)
+        code = j.get("shortcode") or j.get("code") or j.get("url")
+        out.append({
+            "key": f"{src['name']}|{code}",
+            "url": j.get("url") or f"https://apply.workable.com/{slug}/j/{code}/",
+            "title": j.get("title", ""),
+            "location": loc,
+            "needs_page": False,
+        })
+    return out
+
+
+def list_recruitee(src):
+    r = _get(f"https://{src['company']}.recruitee.com/api/offers/")
+    r.raise_for_status()
+    out = []
+    for j in r.json().get("offers", []):
+        out.append({
+            "key": f"{src['name']}|{j.get('id')}",
+            "url": j.get("careers_url") or j.get("url", ""),
+            "title": j.get("title", ""),
+            "location": j.get("location") or ", ".join(
+                x for x in [j.get("city"), j.get("country")] if x),
+            "needs_page": False,
+        })
+    return out
+
+
 ADAPTERS = {
+    "workable": list_workable,
+    "recruitee": list_recruitee,
     "page": list_page,
     "workday": list_workday,
     "greenhouse": list_greenhouse,
@@ -578,6 +726,11 @@ def run():
     all_jobs = []
     for src in SOURCES:
         name = src["name"]
+        every = src.get("every_minutes")
+        last_ok = state["meta"].setdefault("last_check", {}).get(name, 0)
+        if every and now - last_ok < every * 60 - 120:
+            continue
+        state["meta"]["last_check"][name] = now
         try:
             jobs = check_source(src, state, now)
             all_jobs.extend(jobs)
@@ -586,8 +739,10 @@ def run():
             print(f"[{name}] ERROR: {e}")
             err = state["meta"]["errors"].setdefault(name, {"count": 0, "alerted": 0})
             err["count"] += 1
-            # Alert after 6 failed checks in a row (about an hour), then once a day.
-            if err["count"] >= 6 and now - err.get("alerted", 0) > 24 * 3600:
+            # Alert after about an hour of failures (a full day for "too many requests"),
+            # then at most once a day.
+            limit = 48 if "429" in str(e) else 6
+            if err["count"] >= limit and now - err.get("alerted", 0) > 24 * 3600:
                 problems.append(f"• {name}: {e}")
                 err["alerted"] = now
 
